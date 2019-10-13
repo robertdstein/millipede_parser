@@ -8,10 +8,17 @@ import argparse
 # cache_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/EHE/"
 
 
-def parse_ehe(candidate, output_dir, cache_dir):
+def parse_ehe(candidate, base_output_dir, cache_dir):
     path = os.path.join(cache_dir, "{0}/step10_data.pickle".format(candidate))
     print(candidate)
     print("{0}.fits".format(candidate))
+    output_dir = os.path.join(base_output_dir, "fits_v0_raw")
+
+    try:
+        os.makedirs(output_dir)
+    except OSError:
+        pass
+
     output_file = os.path.join(output_dir, "{0}.fits".format(candidate))
 
     split = candidate.split("_")
@@ -35,8 +42,8 @@ def parse_ehe(candidate, output_dir, cache_dir):
     hdr.set("E_dep", best_res["depositedEnergy"])
     hdr.set("ICEMODEL", "SpiceMie")
     hdr.set("ARCHIVAL", True)
-    hdr.set("Stream", split[2])
-    hdr.set("YEAR", split[1])
+    # hdr.set("Stream", split[2])
+    # hdr.set("YEAR", split[1])
     print("Writing to", output_file)
     hdu.writeto(output_file)
 
@@ -51,7 +58,7 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     else:
-        candidates = [y for y in os.listdir(args.cache_dir) if "candidate" in y]
+        candidates = [y for y in os.listdir(args.cache_dir) if "event" in y]
 
     for candidate in candidates:
         parse_ehe(candidate, args.output_dir, args.cache_dir)
