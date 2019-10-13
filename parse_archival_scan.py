@@ -7,11 +7,14 @@ import argparse
 # output_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/output_raw_fits/EHE/"
 # cache_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/EHE/"
 
+def get_v0_output_dir(base_output_dir):
+    return os.path.join(base_output_dir, "fits_v0_raw")
+
 
 def parse_archival_scan(candidate, base_output_dir, cache_dir):
     path = os.path.join(cache_dir, "{0}/step10_data.pickle".format(candidate))
     print(candidate)
-    output_dir = os.path.join(base_output_dir, "fits_v0_raw")
+    output_dir = get_v0_output_dir(base_output_dir)
 
     try:
         os.makedirs(output_dir)

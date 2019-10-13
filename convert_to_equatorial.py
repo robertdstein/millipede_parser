@@ -4,6 +4,7 @@ import numpy as np
 from astropy.io import fits
 import argparse
 from healpy.rotator import Rotator
+from parse_archival_scan import get_v0_output_dir
 
 def switch_ra_azimuth(phi_in, mjd):
     """Givin MJD, transform azimuth->RA **or** RA->azimuth."""
@@ -17,15 +18,15 @@ def rotate_to_equatorial(data, header):
     rot = Rotator(rot=[180. + np.degrees(switch_ra_azimuth(0.0, header["time_mjd"])), 180.0])
     return rot.rotate_map_pixel(data)
 
-def get_input_dir(base_output_dir):
-    return os.path.join(base_output_dir, "fits_v0_raw")
+def get_v1_output_dir(base_output_dir):
+    return os.path.join(base_output_dir, "fits_v1_equatorial")
 
 
 def convert_to_equatorial(candidate, base_output_dir):
-    input_dir = get_input_dir(base_output_dir)
+    input_dir = get_v0_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
     print(candidate)
-    output_dir = os.path.join(base_output_dir, "fits_v1_equatorial")
+    output_dir = get_v1_output_dir(base_output_dir)
 
     try:
         os.makedirs(output_dir)
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     else:
-        candidates = [y for y in os.listdir(get_input_dir(args.output_dir)) if "event" in y]
+        candidates = [y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y]
 
     for candidate in candidates:
         convert_to_equatorial(candidate, args.output_dir)
