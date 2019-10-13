@@ -10,8 +10,8 @@ from add_contextual_info import get_v2_output_dir
 # The magic Millipede contour numbers
 # ======================================
 
-threshold_50 = 22.2
-threshold_90 = 64.2
+threshold_50_ic160427a = 22.2
+threshold_90_ic160427a = 64.2
 
 # ======================================
 
@@ -19,30 +19,8 @@ threshold_90 = 64.2
 def get_v3_output_dir_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v3_prob_map")
 
-
 def convert_prob_ts(p):
     return chi2.ppf(p, 2)
-
-
-def convert_sigma_ts(sig):
-    return chi2.ppf(2 * norm.cdf(sig) - 1.0, 2)
-
-expected_lower_50 = convert_prob_ts(0.5)
-expected_upper_90 = convert_prob_ts(0.90)
-grad_50_90 = (expected_upper_90 - expected_lower_50)/(threshold_90 - threshold_50)
-
-def extrapolate_ts_from_90(p):
-    return threshold_90 + (convert_prob_ts(p) - expected_upper_90)/grad_50_90
-
-
-# Set everything beyond this percentile threshold  to zero
-truncation_percentile = 0.99
-threshold_max = extrapolate_ts_from_90(truncation_percentile)
-contours = [
-    (0.0, threshold_50, 0.0, 0.5),
-    (threshold_50, threshold_90, 0.5, 0.9),
-    (threshold_90, threshold_max, 0.9, truncation_percentile)
-]
 
 def apply_mask_rescale(probs, lower_ts, upper_ts, lower_prob, upper_prob):
     mask = np.logical_and(probs > lower_ts,
@@ -56,7 +34,7 @@ def apply_mask_rescale(probs, lower_ts, upper_ts, lower_prob, upper_prob):
     return probs
 
 
-def convert_to_prob(data):
+def convert_to_prob(data, contours):
     """
     Apply four-stage rescale of LLH landscape, to reach Wilk's-like rescaled contours.
     Then converts these to probabilities, using exponential.
@@ -64,18 +42,40 @@ def convert_to_prob(data):
     Extrapolated to 99% contour using 50-90%. Truncates everything beyond 99% to prob of 0.
 
     :param data: delta-llh landscape
+    :param contours: rescaling values for contours
     :return: pixelwise probabilities
     """
-    probs = list(np.copy(data))
+    probs = np.copy(data)
     probs = np.array(probs) - min(probs)
     probs[np.isnan(probs)] = max(probs)
     for (lower_ts, upper_ts, lower_prob, upper_prob) in contours:
         probs = apply_mask_rescale(probs, lower_ts, upper_ts, lower_prob, upper_prob)
+
+    threshold_max = contours[-1][1]
     mask = probs > threshold_max
     probs = np.exp(-probs)
     probs[mask] = 0.0
     probs /= np.sum(probs)
     return probs
+
+def convert_with_50_90(data, threshold_50=threshold_50_ic160427a, threshold_90=threshold_90_ic160427a):
+    expected_lower_50 = convert_prob_ts(0.5)
+    expected_upper_90 = convert_prob_ts(0.90)
+    grad_50_90 = (expected_upper_90 - expected_lower_50) / (threshold_90 - threshold_50)
+
+    def extrapolate_ts_from_90(p):
+        return threshold_90 + (convert_prob_ts(p) - expected_upper_90) / grad_50_90
+
+    # Set everything beyond this percentile threshold  to zero
+    truncation_percentile = 0.999
+    threshold_max = extrapolate_ts_from_90(truncation_percentile)
+    contours = [
+        (0.0, threshold_50, 0.0, 0.5),
+        (threshold_50, threshold_90, 0.5, 0.9),
+        (threshold_90, threshold_max, 0.9, truncation_percentile)
+    ]
+
+    return convert_to_prob(data, contours)
 
 
 def convert_llh_to_prob(candidate, base_output_dir):
@@ -95,7 +95,7 @@ def convert_llh_to_prob(candidate, base_output_dir):
         data = hdul[0].data
         header = hdul[0].header
         header["DATA"] = "PROB"
-        hdul[0].data = convert_to_prob(data)
+        hdul[0].data = convert_with_50_90(data)
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)
 
