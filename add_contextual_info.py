@@ -3,10 +3,9 @@ import os
 import numpy as np
 from astropy.io import fits
 import argparse
-from healpy.rotator import Rotator
 from convert_to_equatorial import get_v1_output_dir
 
-def get_v2_output_dir_dir(base_output_dir):
+def get_v2_output_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v2_with_contextual_info")
 
 
@@ -14,7 +13,7 @@ def add_contextual_info(candidate, base_output_dir):
     input_dir = get_v1_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
     print(candidate)
-    output_dir = get_v2_output_dir_dir(base_output_dir)
+    output_dir = get_v2_output_dir(base_output_dir)
 
     try:
         os.makedirs(output_dir)
