@@ -16,7 +16,7 @@ threshold_90_ic160427a = 64.2
 # ======================================
 
 
-def get_v3_output_dir_dir(base_output_dir):
+def get_v3_output_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v3_prob_map")
 
 def convert_prob_ts(p):
@@ -82,7 +82,7 @@ def convert_llh_to_prob(candidate, base_output_dir):
     input_dir = get_v2_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
     print(candidate)
-    output_dir = get_v3_output_dir_dir(base_output_dir)
+    output_dir = get_v3_output_dir(base_output_dir)
 
     try:
         os.makedirs(output_dir)
