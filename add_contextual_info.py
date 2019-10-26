@@ -3,17 +3,62 @@ import os
 import numpy as np
 from astropy.io import fits
 import argparse
-from convert_to_equatorial import get_v1_output_dir
+from parse_archival_scan import get_v0_output_dir
+import healpy as hp
+import logging
 
-def get_v2_output_dir(base_output_dir):
-    return os.path.join(base_output_dir, "fits_v2_with_contextual_info")
+def get_v1_output_dir(base_output_dir):
+    return os.path.join(base_output_dir, "fits_v1_with_contextual_info")
 
+def switch_ra_azimuth(phi_in, mjd):
+    """Givin MJD, transform azimuth->RA **or** RA->azimuth."""
+    # Stolen with credit to Mike Richman/csky
+    sidereal_day = 0.997269566 # sidereal day = length * solar day
+    sidereal_offset = 2.54199002505 # RA = offset + 2pi * (MJD/sidereal_length)%1  - azimuth
+    return (sidereal_offset + 2*np.pi*((mjd/sidereal_day)%1) - phi_in) % (2*np.pi)
+
+def parse_archival_alerts():
+    archival_data = []
+    with open("contextual_info/catalog_of_alerts.txt", "r") as f:
+        for line in f.readlines():
+            if line[0] not in ["#", "\n"]:
+                vals = [x for x in line.split(" ") if x not in [""]]
+                time = vals[0]
+                ra = vals[1]
+                dec = vals[3]
+                archival_data.append((float(time), float(ra), float(dec)))
+                # ra_delta = [float(x) / 2.5 for x in vals[2][1:-1].split(",")]
+                # dec_delta = [float(x) / 2.5 for x in vals[4][1:-2].split(",")]
+
+    return np.array(archival_data)
+
+archival_data = parse_archival_alerts()
+
+def extract_az_zen(nside, index):
+    return hp.pix2ang(nside, index)
+
+def add_archival_info(data, header):
+    zen, phi = extract_az_zen(header["NSIDE"], header["MINPIXEL"])
+    dec = np.degrees(zen - np.pi/2.)
+
+    delta_dec = abs(np.array(archival_data.T[2] - dec))
+
+    mask = delta_dec == min(delta_dec)
+
+    match = archival_data[mask]
+
+    converted_ra = np.degrees(switch_ra_azimuth(phi, match[0][0]))
+    delta_ra = abs(match[0][1] - converted_ra)
+    if delta_ra < 0.1:
+        logging.info("Match found")
+        header.set('time_mjd', match[0][0])
+    return data, header
 
 def add_contextual_info(candidate, base_output_dir):
-    input_dir = get_v1_output_dir(base_output_dir)
+    input_dir = get_v0_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
-    print(candidate)
-    output_dir = get_v2_output_dir(base_output_dir)
+    logging.info(candidate)
+    output_dir = get_v1_output_dir(base_output_dir)
 
     try:
         os.makedirs(output_dir)
@@ -26,10 +71,12 @@ def add_contextual_info(candidate, base_output_dir):
         data = hdul[0].data
         header = hdul[0].header
 
-        # Insert magic here
+    data, header = add_archival_info(data, header)
 
-        print("Writing to", output_file)
-        hdul.writeto(output_file, overwrite=True)
+    hdul = fits.PrimaryHDU(data=data, header=header)
+
+    logging.info("Writing to {0}".format(output_file))
+    hdul.writeto(output_file, overwrite=True)
 
 
 if __name__ == "__main__":
@@ -41,7 +88,7 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     else:
-        candidates = [y for y in os.listdir(get_v1_output_dir(args.output_dir)) if "event" in y]
+        candidates = [y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y]
 
     for candidate in candidates:
         add_contextual_info(candidate, args.output_dir)

@@ -4,7 +4,7 @@ import numpy as np
 from astropy.io import fits
 import argparse
 from scipy.stats import chi2, norm
-from add_contextual_info import get_v2_output_dir
+from convert_to_equatorial import get_v2_output_dir
 
 # ======================================
 # The magic Millipede contour numbers
