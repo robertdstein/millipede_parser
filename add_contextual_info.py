@@ -43,7 +43,7 @@ def add_archival_info(data, header):
 
     delta_dec = abs(np.array(archival_data.T[2] - dec))
 
-    mask = delta_dec <= min(delta_dec) + 0.1
+    mask = delta_dec <= min(delta_dec) + 0.3
 
     matches = archival_data[mask]
 
@@ -52,7 +52,7 @@ def add_archival_info(data, header):
         converted_ra = np.degrees(switch_ra_azimuth(phi, match[0]))
 
         delta_ra = abs(match[1] - converted_ra)
-        if delta_ra < 0.5:
+        if delta_ra < 0.3:
             logging.info("Match found")
             if "TIME_MJD" in header.keys():
                 raise Exception("Multiple matches found for {0}".format(dec))
