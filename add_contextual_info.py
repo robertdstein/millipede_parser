@@ -44,13 +44,13 @@ def add_archival_info(data, header):
     delta_dec = abs(np.array(archival_data.T[2] - dec))
 
     mask = delta_dec <= min(delta_dec) + 0.1
-    print(mask, min(delta_dec))
 
     matches = archival_data[mask]
 
     for match in matches:
 
         converted_ra = np.degrees(switch_ra_azimuth(phi, match[0]))
+
         delta_ra = abs(match[1] - converted_ra)
         if delta_ra < 0.1:
             logging.info("Match found")
@@ -62,6 +62,7 @@ def add_archival_info(data, header):
         print("Checked")
         print(matches)
         print("DEC", dec)
+        print("Name", header)
         raise Exception("No match found")
     return data, header
 
