@@ -45,18 +45,17 @@ def add_archival_info(data, header):
 
     print(delta_dec)
 
-    mask = delta_dec == min(delta_dec)
+    mask = delta_dec <= min(delta_dec) + np.deg2rad(0.1)
 
-    match = archival_data[mask]
+    matches = archival_data[mask]
+    
+    for match in matches:
 
-    for row in archival_data:
-        print(np.degrees(switch_ra_azimuth(phi, row[0])))
-
-    converted_ra = np.degrees(switch_ra_azimuth(phi, match[0][0]))
-    delta_ra = abs(match[0][1] - converted_ra)
-    if delta_ra < 0.1:
-        logging.info("Match found")
-        header.set('time_mjd', match[0][0])
+        converted_ra = np.degrees(switch_ra_azimuth(phi, match[0][0]))
+        delta_ra = abs(match[0][1] - converted_ra)
+        if delta_ra < 0.1:
+            print("Match found", match)
+            header.set('time_mjd', match[0][0])
     else:
         print(match)
         print(delta_ra)
