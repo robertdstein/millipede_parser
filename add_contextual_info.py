@@ -43,8 +43,6 @@ def add_archival_info(data, header):
 
     delta_dec = abs(np.array(archival_data.T[2] - dec))
 
-    print(delta_dec)
-
     mask = delta_dec <= min(delta_dec) + np.deg2rad(0.1)
 
     matches = archival_data[mask]
@@ -58,7 +56,11 @@ def add_archival_info(data, header):
             if "TIME_MJD" in header.keys():
                 raise Exception("Multiple matches found for {0}".format(dec))
             header.set('time_mjd', match[0])
+
     if "TIME_MJD" not in header.keys():
+        print("Checked")
+        print(matches)
+        print("DEC", dec)
         raise Exception("No match found")
     return data, header
 
