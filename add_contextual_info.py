@@ -48,14 +48,14 @@ def add_archival_info(data, header):
     mask = delta_dec <= min(delta_dec) + np.deg2rad(0.1)
 
     matches = archival_data[mask]
-    
+
     for match in matches:
 
-        converted_ra = np.degrees(switch_ra_azimuth(phi, match[0][0]))
-        delta_ra = abs(match[0][1] - converted_ra)
+        converted_ra = np.degrees(switch_ra_azimuth(phi, match[0]))
+        delta_ra = abs(match[1] - converted_ra)
         if delta_ra < 0.1:
             print("Match found", match)
-            header.set('time_mjd', match[0][0])
+            header.set('time_mjd', match[0])
     else:
         print(match)
         print(delta_ra)
