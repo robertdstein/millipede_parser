@@ -54,12 +54,11 @@ def add_archival_info(data, header):
         converted_ra = np.degrees(switch_ra_azimuth(phi, match[0]))
         delta_ra = abs(match[1] - converted_ra)
         if delta_ra < 0.1:
-            print("Match found", match)
+            logging.info("Match found")
+            if "TIME_MJD" in header.keys():
+                raise Exception("Multiple matches found for {0}".format(dec))
             header.set('time_mjd', match[0])
-    else:
-        print(match)
-        print(delta_ra)
-        print(converted_ra)
+    if "TIME_MJD" not in header.keys():
         raise Exception("No match found")
     return data, header
 
