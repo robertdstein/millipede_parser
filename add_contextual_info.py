@@ -55,6 +55,9 @@ def add_archival_info(data, header):
         if delta_ra < 0.5:
             logging.info("Match found")
             if "TIME_MJD" in header.keys():
+                print("Existing match: {0}".format(header["TIME_MJD"]))
+                print("New match {0}".format(match))
+                print("DEC:", dec)
                 raise Exception("Multiple matches found for {0}".format(dec))
             header.set('time_mjd', match[0])
         else:
