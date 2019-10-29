@@ -52,6 +52,11 @@ def add_archival_info(data, header):
     if delta_ra < 0.1:
         logging.info("Match found")
         header.set('time_mjd', match[0][0])
+    else:
+        print(match)
+        print(delta_ra)
+        print(converted_ra)
+        raise Exception("No match found")
     return data, header
 
 def add_contextual_info(candidate, base_output_dir):
