@@ -43,7 +43,8 @@ def add_archival_info(data, header):
 
     delta_dec = abs(np.array(archival_data.T[2] - dec))
 
-    mask = delta_dec <= min(delta_dec) + np.deg2rad(0.1)
+    mask = delta_dec <= min(delta_dec) + 0.1
+    print(mask, min(delta_dec))
 
     matches = archival_data[mask]
 
