@@ -57,6 +57,8 @@ def add_archival_info(data, header):
             if "TIME_MJD" in header.keys():
                 raise Exception("Multiple matches found for {0}".format(dec))
             header.set('time_mjd', match[0])
+        else:
+            print(converted_ra, match[1])
 
     if "TIME_MJD" not in header.keys():
         print("Checked")
