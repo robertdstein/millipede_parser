@@ -20,9 +20,12 @@ if __name__ == "__main__":
 
     for candidate in candidates:
         try:
-            cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
-        except IOError:
-            cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
-        add_contextual_info(cand_name, args.output_dir)
-        convert_to_equatorial(cand_name, args.output_dir)
-        convert_llh_to_prob(cand_name, args.output_dir)
+            try:
+                cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+            except IOError:
+                cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+            add_contextual_info(cand_name, args.output_dir)
+            convert_to_equatorial(cand_name, args.output_dir)
+            convert_llh_to_prob(cand_name, args.output_dir)
+        except KeyError:
+            pass
