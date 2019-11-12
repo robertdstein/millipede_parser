@@ -4,7 +4,8 @@ import numpy as np
 from astropy.io import fits
 import argparse
 from healpy.rotator import Rotator
-from add_contextual_info import get_v1_output_dir, switch_ra_azimuth
+from add_contextual_info import get_v1_output_dir
+from contextual_info import switch_ra_azimuth
 
 
 def rotate_to_equatorial(data, header):
