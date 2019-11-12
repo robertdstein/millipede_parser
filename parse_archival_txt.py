@@ -4,14 +4,13 @@ import numpy as np
 from astropy.io import fits
 import healpy as hp
 import argparse
-from parse_archival_scan import get_v0_output_dir
+from parse_archival_scan import get_v0_output_dir, get_v0_output_file
 
 # output_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/output_raw_fits/EHE/"
 # cache_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/EHE/"
 
 
 def parse_archival_txt(candidate, base_output_dir, cache_dir):
-    candidate_name = candidate.split(".")[0]
     path = os.path.join(cache_dir, "{0}/{1}.skymap_SpiceMie.txt".format(candidate, candidate_name))
     print(path)
     output_dir = get_v0_output_dir(base_output_dir)
@@ -21,7 +20,7 @@ def parse_archival_txt(candidate, base_output_dir, cache_dir):
     except OSError:
         pass
 
-    output_name = "{0}.fits".format(candidate_name)
+    output_name = get_v0_output_file(candidate)
 
     output_file = os.path.join(output_dir, output_name)
 

@@ -1,6 +1,6 @@
 import os
 import argparse
-from parse_archival_scan import parse_archival_scan
+from parse_archival_scan import parse_archival_scan, get_v0_output_file, get_v0_output_dir
 from parse_archival_txt import parse_archival_txt
 from convert_to_equatorial import convert_to_equatorial
 from add_contextual_info import add_contextual_info
@@ -16,14 +16,23 @@ if __name__ == "__main__":
 
     if args.event is not None:
         candidates = [args.event]
-    else:
+    elif args.cache_dir is not None:
         candidates = sorted([y for y in os.listdir(args.cache_dir) if "event" in y])
+    else:
+        candidates = sorted([y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
-        try:
-            cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
-        except IOError:
-            cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+
+        if args.cache_dir is not None:
+
+            try:
+                cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+            except IOError:
+                cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+
+        else:
+            cand_name = get_v0_output_file(candidate)
+
         add_contextual_info(cand_name, args.output_dir)
         convert_to_equatorial(cand_name, args.output_dir)
         convert_llh_to_prob(cand_name, args.output_dir)

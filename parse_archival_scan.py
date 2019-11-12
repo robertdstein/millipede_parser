@@ -10,6 +10,10 @@ import argparse
 def get_v0_output_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v0_raw")
 
+def get_v0_output_file(candidate):
+    cand_name = candidate.split(".")[0]
+    return "{0}.fits".format(cand_name)
+
 
 def parse_archival_scan(candidate, base_output_dir, cache_dir):
     path = os.path.join(cache_dir, "{0}/step10_data.pickle".format(candidate))
@@ -21,7 +25,7 @@ def parse_archival_scan(candidate, base_output_dir, cache_dir):
     except OSError:
         pass
 
-    output_name = "{0}.fits".format(candidate)
+    output_name = get_v0_output_file(candidate)
 
     output_file = os.path.join(output_dir, output_name)
 
