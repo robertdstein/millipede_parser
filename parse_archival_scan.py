@@ -50,12 +50,10 @@ def parse_archival_scan(candidate, base_output_dir, cache_dir):
     hdr.set("E_dep", best_res["depositedEnergy"])
     hdr.set("ICEMODEL", "SpiceMie")
     hdr.set("ARCHIVAL", True)
-    try:
-        hdr.set("Stream", split[2])
-        hdr.set("YEAR", split[1])
-    except IndexError:
-        if ".i3.bz2_event0000" in candidate:
-            hdr.set("Stream", "HESE")
+    if "EHE" in candidate:
+        hdr.set("Stream", "EHE")
+    elif ".i3.bz2_event0000" in candidate:
+        hdr.set("Stream", "HESE")
     print("Writing to", output_file)
     hdu.writeto(output_file, overwrite=True)
     return output_name
