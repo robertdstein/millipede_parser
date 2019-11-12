@@ -17,7 +17,7 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     else:
-        candidates = [y for y in os.listdir(args.cache_dir) if "event" in y]
+        candidates = sorted([y for y in os.listdir(args.cache_dir) if "event" in y])
 
     for candidate in candidates:
         try:

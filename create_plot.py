@@ -208,7 +208,7 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     else:
-        candidates = [y for y in os.listdir(get_v3_output_dir(args.output_dir)) if "event" in y]
+        candidates = sorted([y for y in os.listdir(get_v3_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
         create_plot(candidate, args.output_dir)
