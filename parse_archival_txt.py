@@ -44,8 +44,10 @@ def parse_archival_txt(candidate, base_output_dir, cache_dir):
     # hdr.set("E_dep", best_res["depositedEnergy"])
     hdr.set("ICEMODEL", "SpiceMie")
     hdr.set("ARCHIVAL", True)
-    hdr.set("Stream", split[2])
-    hdr.set("YEAR", split[1])
+    if "EHE" in split:
+        hdr.set("Stream", "EHE")
+    elif "HESE" in split:
+        hdr.set("Stream", "HESE")
     print("Writing to", output_file)
     hdu.writeto(output_file, overwrite=True)
     return output_name

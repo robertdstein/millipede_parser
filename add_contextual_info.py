@@ -29,6 +29,7 @@ def add_archival_ehe_info(candidate, data, header):
         match = archival_data[stream_mask][year_mask][num]
 
         header.set('time_mjd', match[0].mjd)
+        header.set("YEAR", int(match[0].jyear))
 
     except IndexError:
         pass
