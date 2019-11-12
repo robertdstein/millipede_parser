@@ -195,6 +195,7 @@ def create_plot(candidate, base_output_dir):
     ax.set_xlabel("Right Ascension (deg)")
     ax.set_ylabel("Declination (deg)")
     plt.savefig(output_file)
+    plt.close()
     # fig = hp.gnomview(probs, rot=[mid_x, mid_y], xsize=npix)
     # fig = hp.gnomview(np.log(probs), rot=[mid_x, mid_y], xsize=npix)
 
