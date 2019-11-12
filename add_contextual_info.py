@@ -33,6 +33,8 @@ def add_archival_ehe_info(candidate, data, header):
 
     except IndexError:
         pass
+    except ValueError:
+        pass
     return data, header
 
 
