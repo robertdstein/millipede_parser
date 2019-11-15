@@ -16,7 +16,11 @@ def get_v0_output_file(candidate):
 
 
 def parse_archival_scan(candidate, base_output_dir, cache_dir):
-    path = os.path.join(cache_dir, "{0}/step10_data.pickle".format(candidate))
+    root = os.path.join(cache_dir, candidate)
+    if not os.path.isfile(root):
+        path = os.path.join(root, "step10_data.pickle")
+    else:
+        path = root
     print(candidate)
     output_dir = get_v0_output_dir(base_output_dir)
 

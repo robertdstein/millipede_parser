@@ -1,5 +1,6 @@
 import os
 import argparse
+import numpy as np
 from parse_archival_scan import parse_archival_scan, get_v0_output_file, get_v0_output_dir
 from parse_archival_txt import parse_archival_txt
 from convert_to_equatorial import convert_to_equatorial
@@ -17,17 +18,21 @@ if __name__ == "__main__":
     if args.event is not None:
         candidates = [args.event]
     elif args.cache_dir is not None:
-        candidates = sorted([y for y in os.listdir(args.cache_dir) if "event" in y])
+        candidates = sorted([y for y in os.listdir(args.cache_dir) if not np.logical_and(
+            "event" not in y, "run" not in y
+        )])
     else:
         candidates = sorted([y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
 
         if args.cache_dir is not None:
+            print(candidate)
 
             try:
                 cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
-            except IOError:
+            # except IOError:
+            except KeyError:
                 cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
 
         else:
