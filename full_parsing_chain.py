@@ -32,7 +32,7 @@ if __name__ == "__main__":
             try:
                 cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
             # except IOError:
-            except KeyError:
+            except ValueError:
                 cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
 
         else:
