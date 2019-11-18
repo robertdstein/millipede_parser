@@ -32,8 +32,10 @@ def convert_to_equatorial(candidate, base_output_dir):
     with fits.open(path) as hdul:
         data = hdul[0].data
         header = hdul[0].header
-        hdul[0].data = rotate_to_equatorial(data, header)
-        header["COORD"] = "EQUATORIAL"
+
+        if not header["COORD"] == "EQUATORIAL":
+            hdul[0].data = rotate_to_equatorial(data, header)
+            header["COORD"] = "EQUATORIAL"
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)
 
