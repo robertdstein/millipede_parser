@@ -25,20 +25,24 @@ if __name__ == "__main__":
         candidates = sorted([y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
+        try:
+            if args.cache_dir is not None:
+                print(candidate)
 
-        if args.cache_dir is not None:
-            print(candidate)
+                try:
+                    cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+                except IOError:
+                    cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
 
-            try:
-                cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
-            # except IOError:
-            except ValueError:
-                cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+            else:
+                 cand_name = get_v0_output_file(candidate)
 
-        else:
-            cand_name = get_v0_output_file(candidate)
+            add_contextual_info(cand_name, args.output_dir)
+            convert_to_equatorial(cand_name, args.output_dir)
+            convert_llh_to_prob(cand_name, args.output_dir)
+            create_plot(cand_name, args.output_dir)
+    
 
-        add_contextual_info(cand_name, args.output_dir)
-        convert_to_equatorial(cand_name, args.output_dir)
-        convert_llh_to_prob(cand_name, args.output_dir)
-        create_plot(cand_name, args.output_dir)
+        except KeyError:
+            pass
+

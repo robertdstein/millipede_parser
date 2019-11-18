@@ -12,7 +12,7 @@ def get_v0_output_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v0_raw")
 
 def get_v0_output_file(candidate):
-    cand_name = candidate.split(".")[0]
+    cand_name = ".".join(candidate.split(".")[:-1])
     return "{0}.fits".format(cand_name)
 
 
@@ -70,6 +70,9 @@ def parse_archival_scan(candidate, base_output_dir, cache_dir):
     except KeyError:
         hdr.set('Coord', "EQUATORIAL")
         hdr.set("ARCHIVAL", False)
+        split_name = candidate.split(".")
+        hdr.set("run_id", split_name[0][3:])
+        hdr.set("event_id", split_name[1][3:])
     hdr.set("DATA", "LOGL")
     hdr.set("minpixel", best_key)
     hdr.set("E_dep", best_e)
