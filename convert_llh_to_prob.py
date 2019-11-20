@@ -48,6 +48,7 @@ def convert_to_prob(data, contours):
     probs = np.copy(data)
     probs = np.array(probs) - min(probs)
     probs[np.isnan(probs)] = max(probs)
+
     for (lower_ts, upper_ts, lower_prob, upper_prob) in contours:
         probs = apply_mask_rescale(probs, lower_ts, upper_ts, lower_prob, upper_prob)
 
@@ -56,9 +57,11 @@ def convert_to_prob(data, contours):
     probs = np.exp(-probs)
     probs[mask] = 0.0
     probs /= np.sum(probs)
+
     return probs
 
 def convert_with_50_90(data, threshold_50=threshold_50_ic160427a, threshold_90=threshold_90_ic160427a):
+
     expected_lower_50 = convert_prob_ts(0.5)
     expected_upper_90 = convert_prob_ts(0.90)
     grad_50_90 = (expected_upper_90 - expected_lower_50) / (threshold_90 - threshold_50)

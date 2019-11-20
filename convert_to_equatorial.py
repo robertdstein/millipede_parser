@@ -33,12 +33,14 @@ def convert_to_equatorial(candidate, base_output_dir):
         data = hdul[0].data
         header = hdul[0].header
 
-        if not header["COORD"] == "EQUATORIAL":
+        if header["COORD"] == "ICECUBE_LOCAL":
             hdul[0].data = rotate_to_equatorial(data, header)
+            header["COORD"] = "EQUATORIAL"
+        if header["COORD"] == "ICECUBE_INV":
+            hdul[0].data = Rotator(rot=[0., 180.0])
             header["COORD"] = "EQUATORIAL"
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

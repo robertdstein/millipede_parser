@@ -26,9 +26,9 @@ def find_pixel_threshold(probs, threshold):
             break
     return pixel_threshold
 
-def get_best_pixel(probs):
+def get_best_pixel(probs, nside):
     max_index = list(probs).index(max(probs))
-    dec, ra = hp.pixelfunc.pix2ang(512, max_index)
+    dec, ra = hp.pixelfunc.pix2ang(nside, max_index)
     ra = np.degrees(ra)
     dec = np.degrees(np.pi/2. - dec)
     return ra, dec
@@ -69,14 +69,15 @@ def create_plot(candidate, base_output_dir):
     threshold_90 = find_pixel_threshold(probs, 0.9)
     mask = probs > (threshold_90 / 5.)
 
-    pos = np.array([hp.pixelfunc.pix2ang(512, i, lonlat=True) for i in np.array(range(len(probs)))[mask]]).T
+    pos = np.array([hp.pixelfunc.pix2ang(nside, i, lonlat=True)
+                    for i in np.array(range(len(probs)))[mask]]).T
 
     min_ra = min(pos[0])
     max_ra = max(pos[0])
     min_dec = min(pos[1])
     max_dec = max(pos[1])
 
-    ra, dec = get_best_pixel(probs)
+    ra, dec = get_best_pixel(probs, nside)
 
     wrap_around = False
 
