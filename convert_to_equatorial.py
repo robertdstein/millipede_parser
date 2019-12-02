@@ -33,11 +33,13 @@ def convert_to_equatorial(candidate, base_output_dir):
         data = hdul[0].data
         header = hdul[0].header
 
+        print(header["COORD"])
+
         if header["COORD"] == "ICECUBE_LOCAL":
             hdul[0].data = rotate_to_equatorial(data, header)
             header["COORD"] = "EQUATORIAL"
-        if header["COORD"] == "ICECUBE_INV":
-            hdul[0].data = Rotator(rot=[0., 180.0])
+        if header["COORD"] == "ICECUBE_INVERTED":
+            hdul[0].data = Rotator(rot=[180.0, 0.])
             header["COORD"] = "EQUATORIAL"
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)

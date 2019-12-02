@@ -49,9 +49,9 @@ def retrieve_v2_alert_info(data, header):
     if not header["ARCHIVAL"]:
         url = v2_gcn_url(header["event_id"], header["run_id"])
         page = requests.get(url)
-        print("Found GCN: {0}".format(url))
 
         if not "404 Not Found" in page.text:
+            print("Found GCN: {0}".format(url))
 
             for line in page.text.splitlines():
 
@@ -91,9 +91,9 @@ def retrieve_v1_alert_info(data, header):
     if not header["ARCHIVAL"]:
         url = v1_gcn_url(header["event_id"], header["run_id"])
         page = requests.get(url)
-        print("Found GCN: {0}".format(url))
 
         if not "404 Not Found" in page.text:
+            print("Found GCN: {0}".format(url))
 
             for line in page.text.splitlines():
 
@@ -117,6 +117,10 @@ def retrieve_v1_alert_info(data, header):
                             raise Exception("Stream not found in {0}".format(row))
                     elif row[0] == "FAR":
                         header.set("FAR", float(val))
+                    elif row[0] == "CHARGE":
+                        header.set("CHARGE", float(val))
+                    elif row[0] == "SIGNAL_TRACKNESS":
+                        header.set("SIGTRACK", float(val))
                     elif row[0] == "DISCOVERY_DATE":
                         disc_date = "20" + line.split(" ")[-2].replace("/", "-")
                     elif row[0] == "DISCOVERY_TIME":
@@ -125,10 +129,6 @@ def retrieve_v1_alert_info(data, header):
             time_str = "{0} {1} UTC".format(disc_date, disc_time)
             header.set("TIME_UTC", time_str)
             header.set("TIME_MJD", Time("{0}T{1}".format(disc_date, disc_time), scale="utc", format="isot").mjd)
-
-            print(header)
-
-
 
     return data, header
 
