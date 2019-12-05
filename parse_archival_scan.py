@@ -81,6 +81,8 @@ def parse_archival_scan(candidate, base_output_dir, cache_dir):
         hdr.set("Stream", "EHE")
     elif ".i3.bz2_event0000" in candidate:
         hdr.set("Stream", "HESE")
+    elif "Level2" in candidate:
+        hdr.set("Stream", "Diffuse")
     print("Writing to", output_file)
     hdu.writeto(output_file, overwrite=True)
     return output_name
