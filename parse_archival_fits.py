@@ -4,22 +4,16 @@ import numpy as np
 import healpy as hp
 from astropy.io import fits
 import argparse
+from parse_archival_scan import get_v0_output_dir, get_v0_output_file
 
 # output_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/output_raw_fits/EHE/"
 # cache_dir = "/Users/robertstein/Realtime_Stuff/alert_archive/EHE/"
 
-def get_v0_output_dir(base_output_dir):
-    return os.path.join(base_output_dir, "fits_v0_raw")
 
-def get_v0_output_file(candidate):
-    cand_name = ".".join(candidate.split(".")[:-1])
-    return "{0}.fits".format(cand_name)
-
-
-def parse_archival_scan(candidate, base_output_dir, cache_dir):
+def parse_archival_fits(candidate, base_output_dir, cache_dir):
     root = os.path.join(cache_dir, candidate)
     if not os.path.isfile(root):
-        path = os.path.join(root, "step10_data.pickle")
+        path = os.path.join(root, "skymap_local.fits")
     else:
         path = root
     print(candidate)
@@ -30,57 +24,43 @@ def parse_archival_scan(candidate, base_output_dir, cache_dir):
     except OSError:
         pass
 
-    output_name = get_v0_output_file(candidate)
+    output_name = get_v0_output_file(candidate.split(".")[1] + ".x")
     output_file = os.path.join(output_dir, output_name)
 
     split = candidate.split("_")
+    run_id = split[3][3:]
+    event_id = split[4][5:]
 
-    with open(path, "r") as f:
-        x = pickle.load(f)
+    meta_file = os.path.join(root, "properties_local.txt")
 
-    try:
-        data = np.array([(y["logl"]) for y in x[0]["SpiceMie"]], dtype=np.float)
-        res = x[0]["SpiceMie"][-1]
-        best_key = list(data).index(min(data))
-        best_res = x[0]["SpiceMie"][best_key]        
-        best_e = best_res["depositedEnergy"]
-    except KeyError:
-        data_8 = np.array([(x[8][key]["llh"]) for key in x[8].keys()], dtype=np.float)
-        up_data_64 = hp.pixelfunc.ud_grade(data_8, 64)
-        for (key, item) in x[64].items():
-            up_data_64[key] = item["llh"]
-        up_data_1024 = hp.pixelfunc.ud_grade(up_data_64, 1024)
-        for (key, item) in x[1024].items():
-            up_data_1024[key] = item["llh"]    
-        data = up_data_1024
-        res = x[8][0]
-        best_key = list(data).index(min(data))
-        best_res = x[1024][best_key]
-        best_e = best_res['recoLossesInside']
+    with open(meta_file, "rb") as f:
+        for line in f.readlines():
+            if "mjd" in line:
+                time_mjd = float(line.split(": ")[1])
+            elif "(string)" in line:
+                time_utc = line.split(": ")[1].split("\n")[0]
+            elif "minimum" in line:
+                minpixel = int(line.split(" at ")[1])
+            elif "energy:" in line:
+                best_e = float(line.split("energy: ")[1][:-4])
+
+    with fits.open(path) as hdul:
+        data = hdul[1].data["logl"]
 
     hdu = fits.PrimaryHDU(data=data)
     hdr = hdu.header
     hdr.set('NSIDE', hp.pixelfunc.npix2nside(len(data)))
-    try:
-        hdr.set('time_mjd', res["time_mjd"])
-        hdr.set('time_utc', res["time_string"])
-        hdr.set("run_id", int(res["run_id"]))
-        hdr.set('Coord', "ICECUBE_LOCAL")
-        hdr.set("ARCHIVAL", True)
-    except KeyError:
-        hdr.set('Coord', "ICECUBE_INVERTED")
-        hdr.set("ARCHIVAL", False)
-        split_name = candidate.split(".")
-        hdr.set("run_id", int(split_name[0][3:]))
-        hdr.set("event_id", int(split_name[1][3:]))
+    hdr.set('time_mjd', time_mjd)
+    hdr.set('time_utc', time_utc)
+    hdr.set('Coord', "ICECUBE_LOCAL")
+    hdr.set("ARCHIVAL", True)
+    hdr.set("run_id", run_id)
+    hdr.set("event_id", event_id)
     hdr.set("DATA", "LOGL")
-    hdr.set("minpixel", best_key)
+    hdr.set("minpixel", minpixel)
     hdr.set("E_dep", best_e)
-    hdr.set("ICEMODEL", "SpiceMie")
-    if "EHE" in candidate:
-        hdr.set("Stream", "EHE")
-    elif ".i3.bz2_event0000" in candidate:
-        hdr.set("Stream", "HESE")
+    hdr.set("Stream", "Diffuse")
+    hdr.set("ARCHIVAL", True)
     print("Writing to", output_file)
     hdu.writeto(output_file, overwrite=True)
     return output_name
@@ -98,4 +78,4 @@ if __name__ == "__main__":
         candidates = sorted([y for y in os.listdir(args.cache_dir) if "event" in y])
 
     for candidate in candidates:
-        parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+        parse_archival_fits(candidate, args.output_dir, args.cache_dir)

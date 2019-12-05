@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 from parse_archival_scan import parse_archival_scan, get_v0_output_file, get_v0_output_dir
 from parse_archival_txt import parse_archival_txt
+from parse_archival_fits import parse_archival_fits
 from convert_to_equatorial import convert_to_equatorial
 from add_contextual_info import add_contextual_info
 from convert_llh_to_prob import convert_llh_to_prob
@@ -19,7 +20,8 @@ if __name__ == "__main__":
         candidates = [args.event]
     elif args.cache_dir is not None:
         candidates = sorted([y for y in os.listdir(args.cache_dir) if not np.logical_and(
-            "event" not in y, "run" not in y
+            np.logical_and("event" not in y, "Event" not in y),
+            np.logical_and("run" not in y, "Run" not in y),
         )])
     else:
         candidates = sorted([y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y])
@@ -27,12 +29,16 @@ if __name__ == "__main__":
     for candidate in candidates:
         try:
             if args.cache_dir is not None:
-                print(candidate)
 
                 try:
-                    cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+
+                    try:
+                        cand_name = parse_archival_scan(candidate, args.output_dir, args.cache_dir)
+                    except IOError:
+                        cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+
                 except IOError:
-                    cand_name = parse_archival_txt(candidate, args.output_dir, args.cache_dir)
+                    cand_name = parse_archival_fits(candidate, args.output_dir, args.cache_dir)
 
             else:
                  cand_name = get_v0_output_file(candidate)
