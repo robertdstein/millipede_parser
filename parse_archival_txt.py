@@ -11,8 +11,8 @@ from parse_archival_scan import get_v0_output_dir, get_v0_output_file
 
 
 def parse_archival_txt(candidate, base_output_dir, cache_dir):
+    candidate_name = candidate.split(".")[0]
     path = os.path.join(cache_dir, "{0}/{1}.skymap_SpiceMie.txt".format(candidate, candidate_name))
-    print(path)
     output_dir = get_v0_output_dir(base_output_dir)
 
     try:
