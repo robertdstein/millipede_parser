@@ -47,28 +47,29 @@ def area(vs):
     return a
 
 
-def create_plot(candidate, base_output_dir):
+def create_plot(candidate, base_output_dir, distribution):
     input_dir = get_v3_output_dir(base_output_dir)
+    candidate = "{0}-{1}.fits".format((os.path.splitext(candidate)[0]),distribution)
     path = os.path.join(input_dir, candidate)
-    print(candidate)
+    
     output_dir = get_plot_output_dir_dir(base_output_dir)
-
+    
     try:
         os.makedirs(output_dir)
     except OSError:
         pass
 
-    output_file = os.path.join(output_dir, "{0}.pdf".format((os.path.splitext(candidate)[0])))
-
+    output_file = os.path.join(output_dir, "{0}.pdf".format(os.path.splitext(candidate)[0]))
+    
     with fits.open(path) as hdul:
         probs = hdul[0].data
         header = hdul[0].header
-
+    
     nside = hp.pixelfunc.npix2nside(len(probs))
-
+    
     threshold_90 = find_pixel_threshold(probs, 0.9)
     mask = probs > (threshold_90 / 5.)
-
+    
     pos = np.array([hp.pixelfunc.pix2ang(nside, i, lonlat=True)
                     for i in np.array(range(len(probs)))[mask]]).T
 
@@ -89,7 +90,7 @@ def create_plot(candidate, base_output_dir):
 
     ras = np.linspace(min([min_ra, max_ra]), min([min_ra, max_ra]) + ra_delta, 101)
     decs = np.linspace(min_dec, max_dec, 101)
-
+    
     log_p = np.log(probs)
 
     ps = []
@@ -205,12 +206,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output_dir")
     parser.add_argument("-e", "--event", default=None)
+    parser.add_argument("-d", "--distribution")
     args = parser.parse_args()
-
+    
     if args.event is not None:
         candidates = [args.event]
+    
     else:
         candidates = sorted([y for y in os.listdir(get_v3_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
-        create_plot(candidate, args.output_dir)
+        create_plot(candidate, args.output_dir,args.distribution)
