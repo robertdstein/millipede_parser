@@ -14,6 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output_dir")
     parser.add_argument("-c", "--cache_dir")
     parser.add_argument("-e", "--event", default=None)
+    parser.add_argument("-d", "--distribution", help="27A, 22A or diffuse")
     args = parser.parse_args()
 
     if args.event is not None:
@@ -45,9 +46,8 @@ if __name__ == "__main__":
 
             add_contextual_info(cand_name, args.output_dir)
             convert_to_equatorial(cand_name, args.output_dir)
-            convert_llh_to_prob(cand_name, args.output_dir)
-            create_plot(cand_name, args.output_dir)
-    
+            convert_llh_to_prob(cand_name, args.output_dir, args.distribution)
+            create_plot(cand_name, args.output_dir, args.distribution)
 
         except KeyError:
             pass
