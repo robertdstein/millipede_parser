@@ -1,4 +1,5 @@
 import pickle
+
 import os
 import numpy as np
 from astropy.io import fits
@@ -12,6 +13,12 @@ from convert_to_equatorial import get_v2_output_dir
 
 threshold_50_ic160427a = 22.2
 threshold_90_ic160427a = 64.2
+
+threshold_50_ic170922a = 9.74
+threshold_90_ic170922a = 41.55
+
+threshold_50_diffuse = 8.404
+threshold_90_diffuse = 43.945
 
 # ======================================
 
@@ -48,19 +55,21 @@ def convert_to_prob(data, contours):
     probs = np.copy(data)
     probs = np.array(probs) - min(probs)
     probs[np.isnan(probs)] = max(probs)
-
+    
     for (lower_ts, upper_ts, lower_prob, upper_prob) in contours:
+    
         probs = apply_mask_rescale(probs, lower_ts, upper_ts, lower_prob, upper_prob)
 
+    
     threshold_max = contours[-1][1]
     mask = probs > threshold_max
     probs = np.exp(-probs)
     probs[mask] = 0.0
     probs /= np.sum(probs)
-
+        
     return probs
 
-def convert_with_50_90(data, threshold_50=threshold_50_ic160427a, threshold_90=threshold_90_ic160427a):
+def convert_with_50_90(data, threshold_50, threshold_90):
 
     expected_lower_50 = convert_prob_ts(0.5)
     expected_upper_90 = convert_prob_ts(0.90)
@@ -81,24 +90,37 @@ def convert_with_50_90(data, threshold_50=threshold_50_ic160427a, threshold_90=t
     return convert_to_prob(data, contours)
 
 
-def convert_llh_to_prob(candidate, base_output_dir):
+def convert_llh_to_prob(candidate, base_output_dir,distribution):
+
+    if distribution == "22A":
+        threshold_50=threshold_50_ic170922a
+        threshold_90=threshold_90_ic170922a
+
+    elif distribution == "27A":
+        threshold_50=threshold_50_ic160427a
+        threshold_90=threshold_90_ic160427a
+
+    elif distribution == "diffuse":
+        threshold_50=threshold_50_diffuse
+        threshold_90=threshold_90_diffuse
+
     input_dir = get_v2_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
-    print(candidate)
-    output_dir = get_v3_output_dir(base_output_dir)
 
+    output_dir = get_v3_output_dir(base_output_dir)
+    
     try:
         os.makedirs(output_dir)
     except OSError:
         pass
 
-    output_file = os.path.join(output_dir, candidate)
+    output_file = os.path.join(output_dir, "{0}-{1}.fits".format((os.path.splitext(candidate)[0]),distribution))
 
     with fits.open(path) as hdul:
         data = hdul[0].data
         header = hdul[0].header
         header["DATA"] = "PROB"
-        hdul[0].data = convert_with_50_90(data)
+        hdul[0].data = convert_with_50_90(data,threshold_50,threshold_90)
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)
 
@@ -107,6 +129,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output_dir")
     parser.add_argument("-e", "--event", default=None)
+    parser.add_argument("-d", "--distribution")
     args = parser.parse_args()
 
     if args.event is not None:
@@ -115,4 +138,4 @@ if __name__ == "__main__":
         candidates = sorted([y for y in os.listdir(get_v2_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
-        convert_llh_to_prob(candidate, args.output_dir)
+        convert_llh_to_prob(candidate, args.output_dir,args.distribution)
