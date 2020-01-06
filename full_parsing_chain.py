@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output_dir")
     parser.add_argument("-c", "--cache_dir")
     parser.add_argument("-e", "--event", default=None)
-    parser.add_argument("-d", "--distribution", help="27A, 22A or diffuse")
+    parser.add_argument("-d", "--distribution", default="IC160427A", help="IC160427A, IC170922A or diffuse")
     args = parser.parse_args()
 
     if args.event is not None:
@@ -28,6 +28,7 @@ if __name__ == "__main__":
         candidates = sorted([y for y in os.listdir(get_v0_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
+        print(candidate)
         try:
             if args.cache_dir is not None:
 
@@ -46,8 +47,8 @@ if __name__ == "__main__":
 
             add_contextual_info(cand_name, args.output_dir)
             convert_to_equatorial(cand_name, args.output_dir)
-            convert_llh_to_prob(cand_name, args.output_dir, args.distribution)
-            create_plot(cand_name, args.output_dir, args.distribution)
+            sys_filename = convert_llh_to_prob(cand_name, args.output_dir, args.distribution)
+            create_plot(sys_filename, args.output_dir)
 
         except KeyError:
             pass

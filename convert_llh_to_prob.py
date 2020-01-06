@@ -26,6 +26,12 @@ threshold_90_diffuse = 43.945
 def get_v3_output_dir(base_output_dir):
     return os.path.join(base_output_dir, "fits_v3_prob_map")
 
+def get_systematics_filename(filename, distribution):
+    return "{0}-{1}.fits".format(
+            (os.path.splitext(filename)[0]),
+            distribution
+        )
+
 def convert_prob_ts(p):
     return chi2.ppf(p, 2)
 
@@ -90,19 +96,22 @@ def convert_with_50_90(data, threshold_50, threshold_90):
     return convert_to_prob(data, contours)
 
 
-def convert_llh_to_prob(candidate, base_output_dir,distribution):
+def convert_llh_to_prob(candidate, base_output_dir, distribution="IC160427A"):
 
-    if distribution == "22A":
-        threshold_50=threshold_50_ic170922a
-        threshold_90=threshold_90_ic170922a
+    if distribution == "IC170922A":
+        threshold_50 = threshold_50_ic170922a
+        threshold_90 = threshold_90_ic170922a
 
-    elif distribution == "27A":
-        threshold_50=threshold_50_ic160427a
-        threshold_90=threshold_90_ic160427a
+    elif distribution == "IC160427A":
+        threshold_50 = threshold_50_ic160427a
+        threshold_90 = threshold_90_ic160427a
 
     elif distribution == "diffuse":
-        threshold_50=threshold_50_diffuse
-        threshold_90=threshold_90_diffuse
+        threshold_50 = threshold_50_diffuse
+        threshold_90 = threshold_90_diffuse
+
+    else:
+        raise Exception("Unrecognised distribution '{0}'".format(distribution))
 
     input_dir = get_v2_output_dir(base_output_dir)
     path = os.path.join(input_dir, candidate)
@@ -114,15 +123,22 @@ def convert_llh_to_prob(candidate, base_output_dir,distribution):
     except OSError:
         pass
 
-    output_file = os.path.join(output_dir, "{0}-{1}.fits".format((os.path.splitext(candidate)[0]),distribution))
+    sys_filename = get_systematics_filename(candidate, distribution)
+
+    output_file = os.path.join(
+        output_dir,
+        sys_filename
+    )
 
     with fits.open(path) as hdul:
         data = hdul[0].data
         header = hdul[0].header
         header["DATA"] = "PROB"
-        hdul[0].data = convert_with_50_90(data,threshold_50,threshold_90)
+        hdul[0].data = convert_with_50_90(data, threshold_50, threshold_90)
         print("Writing to", output_file)
         hdul.writeto(output_file, overwrite=True)
+
+    return sys_filename
 
 
 if __name__ == "__main__":

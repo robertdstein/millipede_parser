@@ -4,7 +4,7 @@ import numpy as np
 from astropy.io import fits
 import argparse
 from scipy.stats import chi2, norm
-from convert_llh_to_prob import get_v3_output_dir
+from convert_llh_to_prob import get_v3_output_dir, get_systematics_filename
 from matplotlib import cm
 import healpy as hp
 import matplotlib.pyplot as plt
@@ -47,9 +47,8 @@ def area(vs):
     return a
 
 
-def create_plot(candidate, base_output_dir, distribution):
+def create_plot(candidate, base_output_dir):
     input_dir = get_v3_output_dir(base_output_dir)
-    candidate = "{0}-{1}.fits".format((os.path.splitext(candidate)[0]),distribution)
     path = os.path.join(input_dir, candidate)
     
     output_dir = get_plot_output_dir_dir(base_output_dir)
@@ -206,14 +205,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output_dir")
     parser.add_argument("-e", "--event", default=None)
-    parser.add_argument("-d", "--distribution")
+    parser.add_argument("-d", "--distribution", default="IC160427A", help="IC160427A, IC170922A or diffuse")
     args = parser.parse_args()
     
     if args.event is not None:
-        candidates = [args.event]
+        candidates = [get_systematics_filename(args.event, args.distribution)]
     
     else:
         candidates = sorted([y for y in os.listdir(get_v3_output_dir(args.output_dir)) if "event" in y])
 
     for candidate in candidates:
-        create_plot(candidate, args.output_dir,args.distribution)
+        create_plot(candidate, args.output_dir)
